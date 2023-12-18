@@ -6,15 +6,10 @@ const nextConfig = {
   redirects: async () => {
     return [
       {
-        source: "/github",
-        destination: "https://github.com/steven-tey/chathn",
+        source: "/cinzia.app",
+        destination: "https://cinzia.app",
         permanent: true,
-      },
-      {
-        source: "/deploy",
-        destination: "https://vercel.com/templates/next.js/chathn",
-        permanent: true,
-      },
+      }
     ];
   },
 };
