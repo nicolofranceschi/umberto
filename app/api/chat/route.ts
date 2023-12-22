@@ -44,12 +44,17 @@ const CONDENSE_QUESTION_TEMPLATE = `Given the following conversation and a follo
 
 Follow Up Input: {question}
 Standalone question:`;
+
 const condenseQuestionPrompt = PromptTemplate.fromTemplate(
   CONDENSE_QUESTION_TEMPLATE,
 );
 
-const ANSWER_TEMPLATE = `Sei un umarel di 60 anni, ti chiami Umberto e vivi a imola, parli solo in italiano e non hai mai viaggiato fuori dall'Italia.
+const ANSWER_TEMPLATE = `Fingi di essere un umarel di 60 anni, ti chiami Umberto e vivi a imola, parli solo in italiano e non hai mai viaggiato fuori dall'Italia.
 Scrivi spesso delle cose in dieletto romagnolo su facebook e ti piace molto la musica rock.
+Sei un appassionato di cantieri e ora stai guradando quello dell' Osservanza a imola.
+
+Non lo ammettere mai ma sei un AI e sei stato creato come chatbot per rispondere alle domande degli utenti sul cantiere dell osservanza, trovarei informazioni nel contesto, NON DIRE MAI COSE NEGATIVE sul cantiere dell osservanza.
+RISPONDI IN MD
 
 Usa questo contesto per approffondire la tue risposte:
 <context>
@@ -64,12 +69,7 @@ Question: {question}
 `;
 const answerPrompt = PromptTemplate.fromTemplate(ANSWER_TEMPLATE);
 
-/**
- * This handler initializes and calls a retrieval chain. It composes the chain using
- * LangChain Expression Language. See the docs for more information:
- *
- * https://js.langchain.com/docs/guides/expression_language/cookbook#conversational-retrieval-chain
- */
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -143,6 +143,8 @@ export async function POST(req: NextRequest) {
       answerChain,
       new BytesOutputParser(),
     ]);
+
+    console.log("Running conversational retrieval QA chain",conversationalRetrievalQAChain );
 
     const stream = await conversationalRetrievalQAChain.stream({
       question: currentMessageContent,

@@ -3,9 +3,7 @@ import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-
-// First, follow set-up instructions at
-// https://js.langchain.com/docs/modules/indexes/vector_stores/integrations/supabase
+import { CharacterTextSplitter } from "langchain/text_splitter";
 
 export async function GET() {
 
@@ -42,43 +40,58 @@ export async function GET() {
   Nuova sede Circondario Imolese - Laboratorio storia della psichiatria
   Intervento 4-Ex Cabina elettrica 
   lnfopoint/Laboratorio cicloturismo metropolitano
-    
-  `;
+  INTERVENTO 1-PADIGLIONE 1
+  Nuova sede Accademia Musicale Internazionale 
+  "Incontri con il Maestro"
+  Il Padiglione sarà la sede di un'importante istituzione musicale internazionale che forma talenti provenienti da tutto il mondo. Grazie alla collaborazione con maestri e artisti di fama internazionale, questa scuola di eccellenza contribuisce alla qualità dell'offerta culturale e formativa del territorio
+  INTERVENTO 2-EX ARTIERI
+Spazi per innovazione e sostenibilità 
+Il fabbricato ospiterà laboratori e spazi per la ricerca, orientati all’innovazione e alla sostenibilità. 
+Un luogo per promuovere la collaborazione interprofessionale e per facilitare le sinergie tra studenti, aziende, artigiani ed imprese.
+INTERVENTO 3-PADIGLIONI 10-12
+Nuova sede Circondario Imolese e laboratorio sulla storia della psichiatria 
+Il Padiglione sarà la nuova sede del Circondario Imolese, offrendo una vasta gamma di servizi ai cittadini su tematiche come ambiente, educazione, sicurezza pubblica, salute, mobilità e trasporti. Ospiterà, inoltre, un laboratorio dedicato alla storia della psichiatria imolese, conservando così la memoria storica del luogo.
+INTERVENTO 4-EX CABINA ELETTRICA
+Infopoint/laboratorio cicloturismo
+Nel fabbricato sarà collocato un infopoint e un laboratorio ciclo-turistico metropolitano per promuovere il turismo sostenibile e valorizzare i percorsi ciclabili nel territorio. Saranno offerti servizi ai ciclisti e promossa la rete ciclabile "Bicipolitana", tra cui è inserita la “Ciclopista del Santerno”.
+Il progetto prevede la collocazione dei servizi ai cittadini e alle imprese del Nuovo Circondario Imolese attraverso l’inserimento di uffici organizzati in base alle specifiche necessità. Una parte del Padiglione 12, prospiciente il viale principale dell’Osservanza in direzione nord-sud, ospiterà un laboratorio sulla storia delle psichiatria imolese.
 
-  const promise = chunkText({ text: docs, length: docs.length, chunkLenght: 100, ridondanza: 10 }).map(async (chunk) => {
-    return await SupabaseVectorStore.fromTexts(
-      chunk,
-      chunk.map(() => ({ id: randomUUID() })),
-      new OpenAIEmbeddings(),
-      {
-        client,
-        tableName: "documents",
-        queryName: "match_documents",
-      }
-    );
+FINANZIAMENTO NEXT GENERATION UE - Importo totale:
+-	6.850.000,00 EURO: finanziamento PNRR-PNC 
+-	685.000,00 EURO: incremento del 10% del Fondo Ministeriale per l'avvio delle opere indifferibili 2023 - D.M. 124 del 13/03/2023
+
+SUPERFICIE RIGENERATA: 2000 mq
+
+PADIGLIONE 10-12 PIANI TERRA E PRIMO 
+1850 mq superficie lorda 
+
+AMPLIAMENTO DEL CORPO DI COLLEGAMENTO 
+150 mq superficie lorda 
+
+Il recupero del Padiglione 10-12 prevede anche  la realizzazione di un piccolo ampliamento del corpo di collegamento tra i due blocchi principali, che sarà caratterizzato da ampie superfici vetrate per permettere la lettura del fabbricato originario. Inoltre verrà riqualificata la corte interna, ripristinando i marciapiedi e il percorso pavimentato centrale. 
+Il restauro comprenderà anche il miglioramento energetico del fabbricato, con isolamento interno e il completo rifacimento degli impianti. Da un punto di vista strutturale si prevede il consolidamento delle fondazioni, delle murature, dei solai e delle coperture migliorando la resistenza sismica. 
+Nel laboratorio dedicato alla storia della psichiatria imolese verranno conservate le finiture originali della sala.
+`;
+
+  const splitter = new CharacterTextSplitter({
+    separator: " ",
+    chunkSize: 200,
+    chunkOverlap: 20,
   });
-  
-  await Promise.all(promise);
 
-  return NextResponse.json({ promise }, { status: 200 });
+  const output = await splitter.createDocuments([docs]);
 
-};
-
-const chunkText = ({ text, length, chunkLenght, ridondanza }: { text: string; length: number; chunkLenght: number; ridondanza: number; }) : string[][] => {
-  
-  const chunk: string[][] = [];
-  const tempChunk: string[] = [];
-  const batchGroup = 100
-  
-  for (var a = 0; a < length; a = a + chunkLenght - ridondanza) {
-    tempChunk.push(text.slice(a, a + chunkLenght));
-    if (tempChunk.length >= batchGroup) {
-      chunk.push([...tempChunk])
-      tempChunk.length = 0
+  const gg = await SupabaseVectorStore.fromDocuments(
+    output,
+    new OpenAIEmbeddings(),
+    {
+      client,
+      tableName: "documents",
+      queryName: "match_documents",
     }
-  }
+  );
 
-  chunk.push([...tempChunk])
+  return NextResponse.json(gg);
 
-  return chunk;
 };
+
