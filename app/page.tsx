@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useChat } from "ai/react";
 import va from "@vercel/analytics";
 import clsx from "clsx";
@@ -17,9 +17,26 @@ const examples = [
   "Come sarà alla fine dei lavori l’Osservanza ?",
 ];
 
+const ideas = [
+  "Perché è stato chiuso l'ospedale psichiatrico di Imola ?",
+  "Quali sono gli interventi previsti ?",
+  "A cosa porterà l'intervento all EX cabina elettrica ?",
+  "Ci saranno spazi destinati all'innovazione e alla sostenibilità ?",
+  "Come sono nati gli ospedali psichiatrici imolesi ?",
+  "Cosa è il Piano Nazionale di Ripresa e Resilienza (PNRR) ?",
+  "Cosa prevede il restauro dell'Osservanza ?",
+  "Quale è l'importo del FINANZIAMENTO NEXT GENERATION UE ?",
+  "Quanto sarà la superficie rigenerata ?",
+]
+
+const getRandom = (arr: string[]): string[] => arr.sort(() => 0.5 - Math.random()).slice(0, 3);
+
 export default function Chat() {
+
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const [randomIdeas, setRandomIdeas] = useState(getRandom(ideas));
 
   const { messages, input, setInput, handleSubmit, isLoading } = useChat({
     onResponse: (response) => {
@@ -41,9 +58,13 @@ export default function Chat() {
 
   const disabled = isLoading || input.length === 0;
 
+  const selectRandomIdeas = (idea: string) => {
+    setRandomIdeas(getRandom(ideas));
+    setInput(idea)
+  }
+
   return (
     <main className="flex flex-col items-center justify-between pb-40">
-
       {messages.length > 0 ? (
         messages.map((message, i) => (
           <div
@@ -89,8 +110,8 @@ export default function Chat() {
             </h1>
             <p className="text-gray-500">
               Umberto è un “umarell” chatbot che sfrutta il potere dell’intelligenza artificiale per dare informazioni e dettagli sull’Osservanza nella maniera più accurata possibile e come tutti gli “umarell” sa anche il dialetto, che aspetti?
-              <p>Chiedigli ciò che preferisci!</p>
             </p>
+            <p>Chiedigli ciò che preferisci!</p>
           </div>
           <div className="flex flex-col space-y-4 border-t border-gray-200 bg-gray-50 p-7 sm:p-10">
             {examples.map((example, i) => (
@@ -109,6 +130,13 @@ export default function Chat() {
         </div>
       )}
       <div className="fixed bottom-0 flex w-full flex-col items-center space-y-3 bg-gradient-to-b from-transparent via-gray-100 to-gray-100 p-5 pb-3 sm:px-0">
+        <div className="flex w-full gap-2 h-10 max-w-screen-md overflow-x-auto thumb pb-1">
+          {randomIdeas.map((idea, i) => (
+            <button onClick={() => selectRandomIdeas(idea)} key={i} className="px-2 p-1 hover:text-gray-600 whitespace-nowrap flex items-center border-gray-200 bg-white border text-gray-400 rounded-lg max-w-screen-md">
+              <p>{idea}</p>
+            </button>
+          ))}
+        </div>
         <form
           ref={formRef}
           onSubmit={handleSubmit}
